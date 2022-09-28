@@ -1,5 +1,5 @@
 {
-	"name": "Cars",
+	"name": "CarsInput",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureBlobStorage1",
