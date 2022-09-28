@@ -1,0 +1,9 @@
+{
+	"name": "ADFTrainingAshika",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "9e7b4b9a-8d0e-4185-a7ac-c3e528df8ecf",
+		"tenantId": "453c8033-78bb-4ec4-803c-d37f1b7bbba4"
+	}
+}
