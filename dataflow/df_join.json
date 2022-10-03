@@ -50,7 +50,7 @@
 				"     ignoreNoFilesFound: false) ~> MoviesDB",
 				"Movies derive(titlenew = toString(left(title,length(title)-6))) ~> MoviesClean",
 				"MoviesClean, MoviesDB join(titlenew == Movies@title,",
-				"     joinType:'left',",
+				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> JoinMovies"
