@@ -67,7 +67,6 @@
 				"          genres = Movies@genres,",
 				"          titlenew,",
 				"          movie,",
-				"          title = MoviesDB@title,",
 				"          genres = MoviesDB@genres,",
 				"          year,",
 				"          Rating,",
