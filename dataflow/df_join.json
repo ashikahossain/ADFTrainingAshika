@@ -25,7 +25,11 @@
 						"referenceName": "Movies2",
 						"type": "DatasetReference"
 					},
-					"name": "MoviesOPT"
+					"name": "MoviesOPT",
+					"rejectedDataLinkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					}
 				}
 			],
 			"transformations": [
