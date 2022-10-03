@@ -49,7 +49,7 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> MoviesDB",
-				"Movies derive(titlenew = ERROR_FUNCTION('toString((left,title,length(title)-6)))')) ~> MoviesClean",
+				"Movies derive(titlenew = toString(left(title,length(title)-6))) ~> MoviesClean",
 				"MoviesClean join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
 				"     joinType:'left',",
 				"     matchType:'exact',",
