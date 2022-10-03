@@ -21,7 +21,11 @@
 			],
 			"sinks": [
 				{
-					"name": "MoviesOP"
+					"dataset": {
+						"referenceName": "Movies2",
+						"type": "DatasetReference"
+					},
+					"name": "MoviesOPT"
 				}
 			],
 			"transformations": [
@@ -76,8 +80,13 @@
 				"     skipDuplicateMapOutputs: true) ~> select1",
 				"select1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     input(",
+				"          movieId as string,",
+				"          title as string,",
+				"          genres as string",
+				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> MoviesOP"
+				"     skipDuplicateMapOutputs: true) ~> MoviesOPT"
 			]
 		}
 	}
