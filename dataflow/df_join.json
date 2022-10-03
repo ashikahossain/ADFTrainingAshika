@@ -6,18 +6,17 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "Movies2",
-						"type": "DatasetReference"
-					},
-					"name": "Movies",
-					"description": "Import/updating\n data from Movies2"
-				},
-				{
-					"dataset": {
 						"referenceName": "MoviesDB",
 						"type": "DatasetReference"
 					},
 					"name": "MoviesDB"
+				},
+				{
+					"dataset": {
+						"referenceName": "Movies2",
+						"type": "DatasetReference"
+					},
+					"name": "Movies1"
 				}
 			],
 			"sinks": [],
@@ -31,14 +30,6 @@
 			],
 			"scriptLines": [
 				"source(output(",
-				"          movieId as string,",
-				"          title as string,",
-				"          genres as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> Movies",
-				"source(output(",
 				"          movie as string,",
 				"          title as string,",
 				"          genres as string,",
@@ -49,6 +40,14 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> MoviesDB",
+				"source(output(",
+				"          movieId as string,",
+				"          title as string,",
+				"          genres as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Movies1",
 				"MoviesDB derive(titlenew = toString(left(title,length(title)-6))) ~> MoviesClean",
 				"MoviesClean, MoviesDB join(titlenew == MoviesDB@title,",
 				"     joinType:'left',",
