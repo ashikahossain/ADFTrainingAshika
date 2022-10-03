@@ -9,11 +9,16 @@
 						"referenceName": "Movies2",
 						"type": "DatasetReference"
 					},
-					"name": "Movies"
+					"name": "Movies",
+					"description": "Import/updating\n data from Movies2"
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "MoviesClean"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          Column_1 as string,",
@@ -25,7 +30,9 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> Movies"
+				"     ignoreNoFilesFound: false) ~> Movies",
+				"Movies derive(column1 = title1,",
+				"          column2 = ERROR_FUNCTION('')) ~> MoviesClean"
 			]
 		}
 	}
