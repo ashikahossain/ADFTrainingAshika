@@ -468,7 +468,11 @@
 								"referenceName": "Movies2",
 								"type": "DatasetReference"
 							},
-							"name": "MoviesOPT"
+							"name": "MoviesOPT",
+							"rejectedDataLinkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							}
 						}
 					],
 					"transformations": [
@@ -538,7 +542,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/Movies_DS1')]",
 				"[concat(variables('factoryId'), '/datasets/MoviesDB')]",
-				"[concat(variables('factoryId'), '/datasets/Movies2')]"
+				"[concat(variables('factoryId'), '/datasets/Movies2')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
 			]
 		},
 		{
