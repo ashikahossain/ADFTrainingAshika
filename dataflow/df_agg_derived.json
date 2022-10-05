@@ -23,6 +23,17 @@
 						"referenceName": "AzureBlobStorage1",
 						"type": "LinkedServiceReference"
 					}
+				},
+				{
+					"dataset": {
+						"referenceName": "Movies_DS1",
+						"type": "DatasetReference"
+					},
+					"name": "MoviesCountByYear",
+					"rejectedDataLinkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					}
 				}
 			],
 			"transformations": [
@@ -58,7 +69,16 @@
 				"     outputAssertFailedRows: true,",
 				"     assertFailure_container: 'inputashika',",
 				"     assertFailure_folderPath: 'errors',",
-				"     partitionBy('hash', 1)) ~> MoviesClean"
+				"     partitionBy('hash', 1)) ~> MoviesClean",
+				"AvgRating sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          movieId as string,",
+				"          title as string,",
+				"          genres as string",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> MoviesCountByYear"
 			]
 		}
 	}
