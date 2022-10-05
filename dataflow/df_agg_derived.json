@@ -52,7 +52,8 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     outputAssertFailedRows: true,",
 				"     assertFailure_container: 'inputashika',",
-				"     assertFailure_folderPath: 'errors') ~> MoviesClean"
+				"     assertFailure_folderPath: 'errors',",
+				"     partitionBy('hash', 1)) ~> MoviesClean"
 			]
 		}
 	}
