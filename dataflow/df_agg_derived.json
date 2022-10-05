@@ -28,6 +28,9 @@
 			"transformations": [
 				{
 					"name": "ExtractYearOutput"
+				},
+				{
+					"name": "AvgRating"
 				}
 			],
 			"scriptLines": [
@@ -41,6 +44,8 @@
 				"     ignoreNoFilesFound: false) ~> MoviesV1",
 				"MoviesV1 derive(Year = toInteger(trim(right(title,6),'()')),",
 				"          title = toString(left(title,length(title)-6))) ~> ExtractYearOutput",
+				"ExtractYearOutput aggregate(groupBy(Year),",
+				"     MoviesCount = count(Year)) ~> AvgRating",
 				"ExtractYearOutput sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
