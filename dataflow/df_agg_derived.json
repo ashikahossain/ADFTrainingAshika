@@ -18,7 +18,11 @@
 						"referenceName": "Movies2",
 						"type": "DatasetReference"
 					},
-					"name": "MoviesClean"
+					"name": "MoviesClean",
+					"rejectedDataLinkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					}
 				}
 			],
 			"transformations": [
@@ -45,7 +49,10 @@
 				"          genres as string",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> MoviesClean"
+				"     skipDuplicateMapOutputs: true,",
+				"     outputAssertFailedRows: true,",
+				"     assertFailure_container: 'inputashika',",
+				"     assertFailure_folderPath: 'errors') ~> MoviesClean"
 			]
 		}
 	}
