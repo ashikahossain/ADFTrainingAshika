@@ -12,10 +12,14 @@
 					"name": "MoviesV1"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
-					"name": "derivedColumn1"
+					"name": "ExtractYearOutput"
 				}
 			],
 			"scriptLines": [
@@ -28,8 +32,11 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> MoviesV1",
 				"MoviesV1 derive(Year = toInteger(trim(right(title,6),'()')),",
-				"          title = toString(left(title,length(title)-6))\r",
-				") ~> derivedColumn1"
+				"          title = toString(left(title,length(title)-6))) ~> ExtractYearOutput",
+				"ExtractYearOutput sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1"
 			]
 		}
 	}
