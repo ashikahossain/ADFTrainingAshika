@@ -89,7 +89,7 @@
 				"          title as string,",
 				"          genres as string",
 				"     ),",
-				"     partitionFileNames:['Movies_OPT_today'],",
+				"     partitionFileNames:['Movies_OPT_today.csv'],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     partitionBy('hash', 1)) ~> MoviesOPT"
