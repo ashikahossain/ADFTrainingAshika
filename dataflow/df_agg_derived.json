@@ -27,7 +27,9 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> MoviesV1",
-				"MoviesV1 derive() ~> derivedColumn1"
+				"MoviesV1 derive(Year = toInteger(trim(right(title,6),'()')),",
+				"          title = toString(left(title,length(title)-6))\r",
+				") ~> derivedColumn1"
 			]
 		}
 	}
