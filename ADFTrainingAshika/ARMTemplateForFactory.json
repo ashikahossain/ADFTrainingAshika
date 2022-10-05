@@ -466,11 +466,25 @@
 								"referenceName": "AzureBlobStorage1",
 								"type": "LinkedServiceReference"
 							}
+						},
+						{
+							"dataset": {
+								"referenceName": "Movies_DS1",
+								"type": "DatasetReference"
+							},
+							"name": "MoviesCountByYear",
+							"rejectedDataLinkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							}
 						}
 					],
 					"transformations": [
 						{
 							"name": "ExtractYearOutput"
+						},
+						{
+							"name": "AvgRating"
 						}
 					],
 					"scriptLines": [
@@ -484,6 +498,8 @@
 						"     ignoreNoFilesFound: false) ~> MoviesV1",
 						"MoviesV1 derive(Year = toInteger(trim(right(title,6),'()')),",
 						"          title = toString(left(title,length(title)-6))) ~> ExtractYearOutput",
+						"ExtractYearOutput aggregate(groupBy(Year),",
+						"     MoviesCount = count(Year)) ~> AvgRating",
 						"ExtractYearOutput sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
@@ -491,12 +507,22 @@
 						"          title as string,",
 						"          genres as string",
 						"     ),",
+						"     partitionFileNames:['MoviesCountByYear'],",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     outputAssertFailedRows: true,",
 						"     assertFailure_container: 'inputashika',",
 						"     assertFailure_folderPath: 'errors',",
-						"     partitionBy('hash', 1)) ~> MoviesClean"
+						"     partitionBy('hash', 1)) ~> MoviesClean",
+						"AvgRating sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          movieId as string,",
+						"          title as string,",
+						"          genres as string",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> MoviesCountByYear"
 					]
 				}
 			},
