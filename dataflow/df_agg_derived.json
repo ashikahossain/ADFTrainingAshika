@@ -26,7 +26,7 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "Movies_DS1",
+						"referenceName": "Movies2",
 						"type": "DatasetReference"
 					},
 					"name": "MoviesCountByYear",
@@ -78,8 +78,10 @@
 				"          title as string,",
 				"          genres as string",
 				"     ),",
+				"     partitionFileNames:['MoviesCoutnByYear.csv'],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> MoviesCountByYear"
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> MoviesCountByYear"
 			]
 		}
 	}
