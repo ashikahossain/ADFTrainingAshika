@@ -118,6 +118,11 @@
 				}
 			}
 		],
+		"parameters": {
+			"table_name": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }
