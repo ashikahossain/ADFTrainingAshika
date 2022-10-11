@@ -66,7 +66,7 @@
 				"     format: 'table') ~> DimCustomer",
 				"CustomerSource derive(Hashkey = sha2(256, iifNull(Title,'') +FirstName +iifNull(MiddleName,'') +LastName +iifNull(CompanyName,'') +iifNull(SalesPerson,'') +iifNull(EmailAddress,'') +iifNull(Phone,''))) ~> CreateHashKey",
 				"CreateHashKey, DimCustomer exists(CreateHashKey@Hashkey == DimCustomer@HashKey,",
-				"     negate:false,",
+				"     negate:true,",
 				"     broadcast: 'auto')~> Exist"
 			]
 		}
