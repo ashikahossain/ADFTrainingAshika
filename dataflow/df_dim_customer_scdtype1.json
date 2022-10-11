@@ -20,7 +20,11 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "CreateHashKey"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          CustomerID as integer,",
@@ -56,7 +60,8 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> DimCustomer"
+				"     format: 'table') ~> DimCustomer",
+				"CustomerSource derive(hashkey = sha2(256, iifNull(Title,'') +FirstName +iifNull(MiddleName,'') +LastName +iifNull(CompanyName,'') +iifNull(SalesPerson,'') +iifNull(EmailAddress,'') +iifNull(Phone,''))) ~> CreateHashKey"
 			]
 		}
 	}
