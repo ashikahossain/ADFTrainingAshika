@@ -29,6 +29,9 @@
 				},
 				{
 					"name": "lookupCustomerid"
+				},
+				{
+					"name": "SetDates"
 				}
 			],
 			"scriptLines": [
@@ -71,10 +74,12 @@
 				"CreateHashKey, DimCustomer exists(CreateHashKey@Hashkey == DimCustomer@HashKey,",
 				"     negate:true,",
 				"     broadcast: 'auto')~> Exist",
-				"Exist lookup(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"Exist, DimCustomer lookup(CreateHashKey@Hashkey == DimCustomer@HashKey,",
 				"     multiple: false,",
 				"     pickup: 'any',",
-				"     broadcast: 'auto')~> lookupCustomerid"
+				"     broadcast: 'auto')~> lookupCustomerid",
+				"lookupCustomerid derive(InsertedDate = iif(isNull(InsertedDate), currentTimestamp(),InsertedDate),",
+				"          ModifiedDate = currentTimestamp()) ~> SetDates"
 			]
 		}
 	}
