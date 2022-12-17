@@ -1,0 +1,463 @@
+{
+	"name": "AH_pl_data_sql_loads_to_ds_adls_ar",
+	"properties": {
+		"activities": [
+			{
+				"name": "etl_timestamp",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "timestamp",
+					"value": {
+						"value": "@utcNow()",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get_all_data",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "etl_timestamp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SnowflakeSource",
+						"query": "Select *\r\nfrom etl.raw_control_table\r\nwhere disable_load_flag = 'FALSE'\r\nand table_name in ('CC_CLAIMINDICATOR', 'CC_COVERAGE', 'CC_MATTER');",
+						"exportSettings": {
+							"type": "SnowflakeExportCopyCommand"
+						}
+					},
+					"dataset": {
+						"referenceName": "DS_SNOWFLAKE_AR",
+						"type": "DatasetReference",
+						"parameters": {
+							"Schema_Name": "ETL",
+							"Table_Name": "Ingestion_History_Table"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach_Get_all_Data",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get_all_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get_all_data').output.value\n",
+						"type": "Expression"
+					},
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "is_incremental_load",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "is_incremental_load",
+								"value": {
+									"value": "@item().IS_INCREMENTAL_LOAD",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "If_data_load_is_incremental_or_full",
+							"description": "If the incremental load is True, then it is incremental and if it is False then it is Full load.",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "is_incremental_load",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@bool(variables('is_incremental_load'))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Copy_full_load_data",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": {
+													"value": "select * from @{item().Table_Name}",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "AR_DS_SQLServer",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "DS_ADLS_parquet_AR",
+												"type": "DatasetReference",
+												"parameters": {
+													"file_name": {
+														"value": "@concat('Full_Load_', item().Table_Name, '_', utcnow(), '.parquet')",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									},
+									{
+										"name": "Scripting_LoadHistory_into_Injestion_Table",
+										"type": "Script",
+										"dependsOn": [
+											{
+												"activity": "Copy_full_load_data",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"linkedServiceName": {
+											"referenceName": "LS_CC_DataMart",
+											"type": "LinkedServiceReference"
+										},
+										"typeProperties": {
+											"scripts": [
+												{
+													"type": "NonQuery",
+													"text": {
+														"value": "INSERT INTO ETL.INGESTION_HISTORY_TABLE \n(RUN_ID \n,RUN_START \n,RUN_END \n,DURATION \n,DATALAKE_CONTAINER \n,DATALAKE_FOLDER \n,SNOWFLAKE_WORSKPACE \n,PIPELINE_NAME \n,PIPELINE_DATE\n,TARGET_FILE_NAME \n,SOURCE_SERVER_NAME \n,SOURCE_DATABASE_NAME \n,SOURCE_SCHEMA_NAME \n,SOURCE_TABLE_NAME \n,TARGET_DATABASE_NAME \n,TARGET_SCHEMA_NAME \n,SNOWFLAKE_FLAG\n,TRIGGERED_BY \n,STATUS \n,ERROR \n,RUN \n,PARAMETER_STRING \n,SOURCE_NBR_OF_RECORDS \n,TARGET_NBR_OF_RECORDS \n,EDW_CREATED_DATE \n,EDW_CREATED_BY \n,EDW_MODIFIED_DATE \n,EDW_MODIFIED_BY)\nVALUES\n('@{pipeline().RunId}'\n,'@{activity('Copy_full_load_data').output.executionDetails[0].start}'\n,'@{utcNow()}'\n,'@{activity('Copy_full_load_data').output.copyDuration}'\n,'@{item().DATALAKE_CONTAINER}'\n,'@{item().DATALAKE_FOLDER}'\n,'@{item().SNOWFLAKE_WORSKPACE}'\n,'@{pipeline().Pipeline}'\n,'@{utcNow()}'\n,'@{concat('Full_',item().TABLE_NAME,'_',variables('timestamp'),'.parquet')}'\n,'@{item().SERVER_NAME}'\n,'@{item().database_name}'\n,'@{item().schema_name}'\n,'@{item().Table_Name}'\n,'@{activity('Copy_full_load_data').output.executionDetails[0].sink.type}'\n,'@{pipeline().parameters.schema_name}'\n,'@{item().DISABLE_LOAD_FLAG}'\n,'@{activity('Copy_full_load_data').output.errors}'\n,'@{activity('Copy_full_load_data').output.executionDetails[0].STATUS}'\n,'@{pipeline().TriggerName}'\n,'@{item().ETL_VELOCITY}'\n,'@{activity('get_all_data').output.count}'\n,'@{activity('Copy_full_load_data').output.rowsRead}'\n,'@{activity('Copy_full_load_data').output.rowsCopied}'\n,'@{item().EDW_Created_Date}'\n,'@{item().EDW_Created_By}'\n,'@{item().EDW_Modified_Date}'\n,'@{item().EDW_Modified_By}'\n)\n\n\n",
+														"type": "Expression"
+													}
+												}
+											],
+											"scriptBlockExecutionTimeout": "02:00:00"
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "find_max_update_time",
+										"description": "Max update time will indicate the last row that has been processed by the pipeline.",
+										"type": "Lookup",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": {
+													"value": "SELECT MAX(UpdateTime) as max_update_time\nFROM @{item().TABLE_NAME}",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "AR_DS_SQLServer",
+												"type": "DatasetReference"
+											}
+										}
+									},
+									{
+										"name": "Set _max_update_time",
+										"description": "Max update time will indicate the last row that has been processed by the pipeline. This will be used to set the watermark time of the Snowflake.",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "find_max_update_time",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "max_update_time",
+											"value": {
+												"value": "@activity('find_max_update_time').output.firstRow.max_update_time\n",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Copy_incremental_data",
+										"type": "Copy",
+										"dependsOn": [
+											{
+												"activity": "Set _max_update_time",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": {
+													"value": "select * FROM @{item().Table_Name}\nwhere UpdateTime >= '@{item().CURRENT_VALUE}'",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "AR_DS_SQLServer",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "DS_ADLS_parquet_AR",
+												"type": "DatasetReference",
+												"parameters": {
+													"file_name": {
+														"value": "@concat('IncrementalLoad', item().Table_Name, '_', utcNow(), '.parquet')",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									},
+									{
+										"name": "update_script_snowflake",
+										"type": "Script",
+										"dependsOn": [
+											{
+												"activity": "Copy_incremental_data",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"linkedServiceName": {
+											"referenceName": "LS_CC_DataMart",
+											"type": "LinkedServiceReference"
+										},
+										"typeProperties": {
+											"scripts": [
+												{
+													"type": "NonQuery",
+													"text": {
+														"value": "update @{concat(pipeline().parameters.schema_name, '.', pipeline().parameters.table_name)}\nset CURRENT_VALUE = '@{variables('max_update_time')}'\nwhere TABLE_NAME = '@{item().TABLE_NAME}'\n\n\n",
+														"type": "Expression"
+													}
+												}
+											],
+											"scriptBlockExecutionTimeout": "02:00:00"
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "success_mail_notification",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "ForEach_Get_all_Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "https://prod-26.eastus.logic.azure.com:443/workflows/67369f7e987f48a5935822d20ca9acc1/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=I4YnpRguiBUK0jZbin3CO93KlTG_u0NTNm-xlw7IrFY",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"body": {
+						"value": "{\n    \"dataFactoryName\":\"@{pipeline().DataFactory}\",\n    \"message\":\"DATA COPY PIPELINE FINISHED SUCCESSFULLY\",\n    \"pipelineName\":\"@{pipeline().Pipeline}\",\n    \"receiver\":\"ashika@kasmo.co\"\n  \n    }",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "failure_mail_notification",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "ForEach_Get_all_Data",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "https://prod-26.eastus.logic.azure.com:443/workflows/67369f7e987f48a5935822d20ca9acc1/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=I4YnpRguiBUK0jZbin3CO93KlTG_u0NTNm-xlw7IrFY",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"body": {
+						"value": "{\n    \"dataFactoryName\":\"@{pipeline().DataFactory}\",\n    \"message\":\"DATA COPY PIPELINE FAILED\",\n    \"pipelineName\":\"@{pipeline().Pipeline}\",\n    \"receiver\":\"ashika@kasmo.co\"\n  \n    }",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "ETL"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "Raw_Control_Table"
+			},
+			"source_table_1": {
+				"type": "string",
+				"defaultValue": "CC_CLAIMINDICATOR"
+			},
+			"source_table_2": {
+				"type": "string",
+				"defaultValue": "CC_COVERAGE"
+			},
+			"source_table_3": {
+				"type": "string",
+				"defaultValue": "CC_MATTER"
+			}
+		},
+		"variables": {
+			"timestamp": {
+				"type": "String"
+			},
+			"is_incremental_load": {
+				"type": "Boolean"
+			},
+			"max_update_time": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-11-05T20:09:50Z"
+	}
+}

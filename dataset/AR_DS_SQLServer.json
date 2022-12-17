@@ -1,0 +1,16 @@
+{
+	"name": "AR_DS_SQLServer",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_GW_CC_New",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "cc_coverage"
+		}
+	}
+}

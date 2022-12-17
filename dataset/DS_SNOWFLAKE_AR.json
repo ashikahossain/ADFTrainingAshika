@@ -1,0 +1,117 @@
+{
+	"name": "DS_SNOWFLAKE_AR",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_CC_DataMart",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Schema_Name": {
+				"type": "string",
+				"defaultValue": "ETL"
+			},
+			"Table_Name": {
+				"type": "string",
+				"defaultValue": "Ingestion_History_Table"
+			}
+		},
+		"annotations": [],
+		"type": "SnowflakeTable",
+		"schema": [
+			{
+				"name": "CONTROL_ID",
+				"type": "NUMBER",
+				"precision": 38,
+				"scale": 0
+			},
+			{
+				"name": "SNOWFLAKE_WORSKPACE",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "SERVER_NAME",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "DATABASE_NAME",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "SCHEMA_NAME",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "TABLE_NAME",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "ETL_VELOCITY",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "CURRENT_VALUE",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "PREVIOUS_VALUE",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "IS_INCREMENTAL_LOAD",
+				"type": "BOOLEAN",
+				"precision": 1,
+				"scale": 0
+			},
+			{
+				"name": "EDW_CREATED_DATE",
+				"type": "TIMESTAMP_NTZ",
+				"precision": 29,
+				"scale": 9
+			},
+			{
+				"name": "EDW_CREATED_BY",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "EDW_MODIFIED_DATE",
+				"type": "TIMESTAMP_NTZ",
+				"precision": 29,
+				"scale": 9
+			},
+			{
+				"name": "EDW_MODIFIED_BY",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "DATALAKE_CONTAINER",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "DATALAKE_FOLDER",
+				"type": "VARCHAR",
+				"scale": 0
+			},
+			{
+				"name": "DISABLE_LOAD_FLAG",
+				"type": "BOOLEAN",
+				"precision": 1,
+				"scale": 0
+			}
+		],
+		"typeProperties": {
+			"schema": "ETL",
+			"table": "RAW_CONTROL_TABLE"
+		}
+	}
+}
